@@ -3,9 +3,10 @@
     /**
      * Module dependencies
      */
+    var GoodWinston = require('good-winston');
+    var user = require('./middlewares/user');
     var config = require('./config');
     var winston = require('../winston');
-    var GoodWinston = require('good-winston');
 
     /**
      * [exports description]

@@ -125,8 +125,7 @@
             handler: users.logout,
             config: {
                 auth: {
-                    strategy: 'token',
-                    mode: 'optional'
+                    strategy: 'token'
                 },
                 validate: {
                     params: {

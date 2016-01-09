@@ -32,7 +32,7 @@
     };
     connect();
 
-    mongoose.connection.on('error', console.log);
+    mongoose.connection.on('error', winston.error);
     mongoose.connection.on('disconnected', connect);
     mongoose.connection.on('open', listen);
 
@@ -60,5 +60,5 @@
             winston.info('Hapi API server started at', server.info.uri);
         });
     }
-    
+
 }());
