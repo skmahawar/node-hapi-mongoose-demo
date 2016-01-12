@@ -48,7 +48,7 @@
      */
     function retrieve(id, done) {
 
-        winston.info("Calling retrieve for token: %s", id);
+        winston.info("Calling retrieve for token:", id);
 
         if (_.isNull(id)) {
             return done(new Error("token_invalid"));
@@ -97,50 +97,43 @@
      * @param  {Function} callback [description]
      * @return {[type]}            [description]
      */
-    exports.create = function(request, reply) {
-        var data = request.payload;
-        var user = new User(data);
-        user.provider = 'local';
-        user.save(function(err) {
+    exports.createToken = function(user, callback) {
+        winston.info("Create token");
+        if (_.isEmpty(user)) {
+            return callback(new Error("User data cannot be empty."));
+        }
+        user.token = jsonwebtoken.sign({
+            user_id: user._id,
+            first_name: user.first_name,
+            username: user.username
+        }, config.secretKey, {
+            algorithm: 'HS256',
+            expiresInMinutes: TOKEN_EXPIRATION
+        });
+
+        var decoded = jsonwebtoken.decode(user.token);
+
+        var data = _.pick(user, 'email', 'username', '_id', 'first_name', 'token', 'provider');
+        data.token_exp = decoded.exp;
+        data.token_iat = decoded.iat;
+
+        winston.info("Token generated for user: %s, token: %s", user.username, data.token);
+
+        client.set(data.token, JSON.stringify(data), function(err, reply) {
             if (err) {
-                return reply(err);
+                return callback(err);
             }
-            winston.info("Create token");
-            if (_.isEmpty(user)) {
-                return reply(new Error("User data cannot be empty."));
-            }
-            data.token = jsonwebtoken.sign({
-                _id: user._id,
-                name: user.name,
-                username: user.username
-            }, config.secretKey, {
-                expiresInMinutes: TOKEN_EXPIRATION
-            });
+            if (!reply) return callback(new Error("Token not set in redis"));
 
-            var decoded = jsonwebtoken.decode(data.token);
-
-            data.token_exp = decoded.exp;
-            data.token_iat = decoded.iat;
-
-            winston.info("Token generated for user: %s, token: %s", data.username, data.token);
-
-            client.set(data.token, JSON.stringify(data), function(err, reply) {
+            client.expire(data.token, TOKEN_EXPIRATION_SEC, function(err, reply) {
                 if (err) {
-                    return reply(err);
+                    return callback(new Error("Can not set the expire value for the token key"));
                 }
-                if (!reply) return reply(new Error("Token not set in redis"));
-
-                client.expire(data.token, TOKEN_EXPIRATION_SEC, function(err, reply) {
-                    if (err) {
-                        return reply(new Error("Can not set the expire value for the token key"));
-                    }
-                    if (reply) {
-                        request.data = data;
-                        return request.continue(); // we have succeeded
-                    } else {
-                        return reply(new Error("Expiration not set on redis"));
-                    }
-                });
+                if (reply) {
+                    return callback(null, data); // we have succeeded
+                } else {
+                    return callback(new Error("Expiration not set on redis"));
+                }
             });
         });
     };
@@ -171,16 +164,17 @@
         });
     };
 
-    exports.requiresLogin = function(request, reply) {
+
+    exports.requiresLogin = function(request, decodedToken, callback) {
         var token = fetch(request.headers);
         retrieve(token, function(err, data) {
-
             if (err) {
-                req.user = undefined;
-                return reply(new Error("Invalid Token"));
+                return callback(err, false);
             }
-            request.data = data;
-            request.continue();
+            if (!data) {
+                return callback(err, false);
+            }
+            return callback(err, true, data);
         });
     };
 

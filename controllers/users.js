@@ -3,25 +3,15 @@
     /**
      * Module dependencies
      */
-    var mongoose = require('mongoose');
-    var User = mongoose.model('User');
+    var Boom = require('boom');
+    var redis = require("redis");
+    var client = redis.createClient();
     var users = require('../services/users');
+    var jsonwebtoken = require("jsonwebtoken");
+    var TOKEN_EXPIRATION = 60 * 60;
+    var TOKEN_EXPIRATION_SEC = TOKEN_EXPIRATION * 60;
     var winston = require('../winston');
-
-    exports.load = function(request, reply) {
-        var userId = request.auth.credentials.user_id;
-        var options = {
-            criteria: {
-                _id: userId
-            }
-        };
-        User.load(options, function(err, user) {
-            if (err) return reply(err);
-            if (!user) return reply(new Error('Failed to load User ' + userId));
-            request.profile = user;
-            request.continue();
-        });
-    };
+    var authenticate = require('../config/middlewares/authenticate');
 
     /**
      * [register description]
@@ -31,16 +21,18 @@
      */
     exports.register = function(request, reply) {
         winston.info(request.payload);
-        var user = new User(request.payload);
-        user.provider = 'local';
-        user.save(function(err) {
+        users.create(request.payload, function(err, user) {
             if (err) {
-                return reply({
-                    success: false
-                });
+                return reply(err);
             }
-            reply({
-                success: true
+            authenticate.createToken(user, function(err, data) {
+                if (err) {
+                    return reply(err);
+                }
+                reply({
+                    success: true,
+                    token: data.token
+                });
             });
         });
     };
@@ -53,7 +45,22 @@
      */
     exports.login = function(request, reply) {
         winston.info(request.payload);
-        reply(request.payload);
+        var email = request.payload.email;
+        var password = request.payload.password;
+        users.loadByEmail(email, function(err, user) {
+            if (!user.authenticate(password)) {
+                return reply(new Error("Invalid username or password"));
+            }
+            authenticate.createToken(user, function(err, data) {
+                if (err) {
+                    return reply(err);
+                }
+                reply({
+                    success: true,
+                    token: data.token
+                });
+            });
+        });
     };
 
     /**
@@ -65,7 +72,7 @@
     exports.logout = function(request, reply) {
         winston.info(new Date());
         reply({
-            success: true
+            success: authenticate.expire(request.headers)
         });
     };
 
@@ -77,7 +84,16 @@
      */
     exports.profile = function(request, reply) {
         winston.info(request.params.userId);
-        reply(request.payload);
+        var userId = request.params.userId;
+        if (userId === 'me')
+            userId = request.auth.credentials.user_id;
+        if(!userId) return reply(Boom.unauthorized("Unauthorized user"));
+        users.loadByUserId(userId, function(err, user) {
+            if (err) {
+                return reply(err);
+            }
+            reply(user);
+        });
     };
 
     /**
@@ -87,8 +103,13 @@
      * @return {[type]}         [description]
      */
     exports.editProfile = function(request, reply) {
-        winston.info(request.params.userId);
-        reply(request.payload);
+        var userId = request.auth.credentials.user_id;
+        users.edit(userId, request.payload, function(err, user){
+            if(err){
+                return reply(err);
+            }
+            reply(user);
+        });
     };
 
 }());

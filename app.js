@@ -51,9 +51,6 @@
                 winston.error(err);
                 throw err;
             }
-            server.auth.strategy('token', 'jwt', 'optional', {
-                key: config.secretKey
-            });
             require('./config/routes')(server);
         });
         server.start(function() {

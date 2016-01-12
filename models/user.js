@@ -22,7 +22,11 @@
      */
 
     var UserSchema = new Schema({
-        name: {
+        first_name: {
+            type: String,
+            default: ''
+        },
+        last_name: {
             type: String,
             default: ''
         },
@@ -33,10 +37,10 @@
         phone_number: {
             type: String
         },
-        username: {
-            type: String,
-            default: ''
-        },
+        /*        username: {
+                    type: String,
+                    default: ''
+                },*/
         provider: {
             type: String,
             default: ''
@@ -57,7 +61,11 @@
         twitter: {},
         github: {},
         google: {},
-        linkedin: {}
+        linkedin: {},
+        created: {
+            type: Date,
+            default: Date.now
+        }
     });
 
     var validatePresenceOf = function(value) {
@@ -85,9 +93,9 @@
 
     // the below 5 validations only apply if you are signing up traditionally
 
-    UserSchema.path('name').validate(function(name) {
+    UserSchema.path('first_name').validate(function(first_name) {
         if (this.skipValidation()) return true;
-        return name.length;
+        return first_name.length;
     }, 'Name cannot be blank');
 
     UserSchema.path('email').validate(function(email) {
@@ -109,10 +117,10 @@
         } else fn(true);
     }, 'Email already exists');
 
-    UserSchema.path('username').validate(function(username) {
-        if (this.skipValidation()) return true;
-        return username.length;
-    }, 'Username cannot be blank');
+    /*    UserSchema.path('username').validate(function(username) {
+            if (this.skipValidation()) return true;
+            return username.length;
+        }, 'Username cannot be blank');*/
 
     UserSchema.path('hashed_password').validate(function(hashed_password) {
         if (this.skipValidation()) return true;
@@ -207,7 +215,7 @@
          */
 
         load: function(options, cb) {
-            options.select = options.select || 'name username';
+            options.select = options.select || 'first_name last_name _id provider email username ';
             return this.findOne(options.criteria)
                 .select(options.select)
                 .exec(cb);

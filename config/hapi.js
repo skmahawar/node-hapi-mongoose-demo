@@ -4,8 +4,6 @@
      * Module dependencies
      */
     var GoodWinston = require('good-winston');
-    var user = require('./middlewares/user');
-    var config = require('./config');
     var winston = require('../winston');
 
     /**
@@ -29,6 +27,9 @@
         });
 
         server.register([{
+            register: require('bell'),
+            options: {}
+        }, {
             register: require('hapi-auth-jwt'),
             options: {}
         }, {
