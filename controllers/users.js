@@ -14,6 +14,64 @@
     var authenticate = require('../config/middlewares/authenticate');
 
     /**
+     * [Login with Facebook description]
+     * @param  {[type]} request [description]
+     * @param  {[type]} reply   [description]
+     * @return {[type]}         [description]
+     */
+    exports.loginWithFacebook = function(request, reply) {
+
+        if (!request.auth.isAuthenticated) {
+            return reply('Authentication failed due to: ' + request.auth.error.message);
+        }
+        return reply.redirect('/users/me');
+    };
+
+    /**
+     * [Login with Google description]
+     * @param  {[type]} request [description]
+     * @param  {[type]} reply   [description]
+     * @return {[type]}         [description]
+     */
+    exports.loginWithGoogle = function(request, reply) {
+
+        if (!request.auth.isAuthenticated) {
+            return reply('Authentication failed due to: ' + request.auth.error.message);
+        }
+        return reply.redirect('/users/me');
+    };
+
+
+    /**
+     * [Login with Linkedin description]
+     * @param  {[type]} request [description]
+     * @param  {[type]} reply   [description]
+     * @return {[type]}         [description]
+     */
+    exports.loginWithLinkedin = function(request, reply) {
+
+        if (!request.auth.isAuthenticated) {
+            return reply('Authentication failed due to: ' + request.auth.error.message);
+        }
+        return reply.redirect('/users/me');
+    };
+
+
+    /**
+     * [Login with Twitter description]
+     * @param  {[type]} request [description]
+     * @param  {[type]} reply   [description]
+     * @return {[type]}         [description]
+     */
+    exports.loginWithTwitter = function(request, reply) {
+
+        if (!request.auth.isAuthenticated) {
+            return reply('Authentication failed due to: ' + request.auth.error.message);
+        }
+        return reply.redirect('/users/me');
+    };
+
+    /**
      * [register description]
      * @param  {[type]} request [description]
      * @param  {[type]} reply   [description]
@@ -87,7 +145,7 @@
         var userId = request.params.userId;
         if (userId === 'me')
             userId = request.auth.credentials.user_id;
-        if(!userId) return reply(Boom.unauthorized("Unauthorized user"));
+        if (!userId) return reply(Boom.unauthorized("Unauthorized user"));
         users.loadByUserId(userId, function(err, user) {
             if (err) {
                 return reply(err);
@@ -104,8 +162,8 @@
      */
     exports.editProfile = function(request, reply) {
         var userId = request.auth.credentials.user_id;
-        users.edit(userId, request.payload, function(err, user){
-            if(err){
+        users.edit(userId, request.payload, function(err, user) {
+            if (err) {
                 return reply(err);
             }
             reply(user);

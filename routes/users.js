@@ -11,6 +11,34 @@
      * @type {Array}
      */
     module.exports = [{
+            method: ['GET', 'POST'],
+            path: '/auth/facebook',
+            config: {
+                auth: 'facebook',
+                handler: users.loginWithFacebook
+            }
+        }, {
+            method: ['GET', 'POST'],
+            path: '/auth/google',
+            config: {
+                auth: 'google',
+                handler: users.loginWithGoogle
+            }
+        }, {
+            method: ['GET', 'POST'],
+            path: '/auth/linkedin',
+            config: {
+                auth: 'linkedin',
+                handler: users.loginWithLinkedin
+            }
+        }, {
+            method: ['GET', 'POST'],
+            path: '/auth/twitter',
+            config: {
+                auth: 'twitter',
+                handler: users.loginWithTwitter
+            }
+        }, {
             method: 'POST',
             path: '/users/register',
             handler: users.register,

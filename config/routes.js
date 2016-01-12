@@ -24,6 +24,10 @@
                 algorithms: ['HS256']
             }
         });
+        facebook(server);
+        google(server);
+        linkedin(server);
+        twitter(server);
         server.route(users);
     };
 
