@@ -15,11 +15,11 @@
     // it is not safe to store id's in files
 
     if (fs.existsSync(envFile)) {
-      env = fs.readFileSync(envFile, 'utf-8');
-      env = JSON.parse(env);
-      Object.keys(env).forEach(function (key) {
-        process.env[key] = env[key];
-      });
+        env = fs.readFileSync(envFile, 'utf-8');
+        env = JSON.parse(env);
+        Object.keys(env).forEach(function(key) {
+            process.env[key] = env[key];
+        });
     }
 
     /**
@@ -28,7 +28,10 @@
 
     module.exports = {
         db: 'mongodb://localhost/noobjs_dev',
-        secretKey:"hapi-server-secret-key",
+        secretKey: "hapi-server-secret-key",
+        notifier: {
+            url: "http://localhost:3031/api/events?access_token=1234"
+        },
         facebook: {
             clientID: process.env.FACEBOOK_CLIENTID,
             clientSecret: process.env.FACEBOOK_SECRET,

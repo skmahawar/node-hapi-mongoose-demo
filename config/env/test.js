@@ -7,7 +7,10 @@
 
     module.exports = {
         db: 'mongodb://localhost/noobjs_test',
-        secretKey:process.env.HAPI_SECRET_KEY,
+        secretKey: process.env.HAPI_SECRET_KEY,
+        notifier: {
+            url: "http://localhost:3031/api/events?access_token=1234"
+        },
         facebook: {
             clientID: process.env.FACEBOOK_CLIENTID,
             clientSecret: process.env.FACEBOOK_SECRET,

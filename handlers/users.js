@@ -81,11 +81,11 @@
         winston.info(request.payload);
         users.create(request.payload, function(err, user) {
             if (err) {
-                return reply(err);
+                return reply(Boom.badRequest(err));
             }
             authenticate.createToken(user, function(err, data) {
                 if (err) {
-                    return reply(err);
+                    return reply(Boom.badRequest(err));
                 }
                 reply({
                     success: true,
@@ -107,11 +107,11 @@
         var password = request.payload.password;
         users.loadByEmail(email, function(err, user) {
             if (!user.authenticate(password)) {
-                return reply(new Error("Invalid username or password"));
+                return reply(Boom.badRequest("Invalid username or password"));
             }
             authenticate.createToken(user, function(err, data) {
                 if (err) {
-                    return reply(err);
+                    return reply(Boom.badRequest(err));
                 }
                 reply({
                     success: true,
@@ -148,7 +148,7 @@
         if (!userId) return reply(Boom.unauthorized("Unauthorized user"));
         users.loadByUserId(userId, function(err, user) {
             if (err) {
-                return reply(err);
+                return reply(Boom.badRequest(err));
             }
             reply(user);
         });
@@ -164,7 +164,7 @@
         var userId = request.auth.credentials.user_id;
         users.edit(userId, request.payload, function(err, user) {
             if (err) {
-                return reply(err);
+                return reply(Boom.badRequest(err));
             }
             reply(user);
         });

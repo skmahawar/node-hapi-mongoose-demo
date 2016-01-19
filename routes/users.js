@@ -3,7 +3,7 @@
     /**
      * Module dependencies
      */
-    var users = require('../controllers/users');
+    var users = require('../handlers/users');
     var Joi = require('joi');
 
     /**
