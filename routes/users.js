@@ -10,73 +10,49 @@
      * User routes
      * @type {Array}
      */
+    //deviceId: Joi.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
     module.exports = [{
-            method: ['GET', 'POST'],
-            path: '/auth/facebook',
-            config: {
-                auth: 'facebook',
-                handler: users.loginWithFacebook
-            }
-        }, {
-            method: ['GET', 'POST'],
-            path: '/auth/google',
-            config: {
-                auth: 'google',
-                handler: users.loginWithGoogle
-            }
-        }, {
-            method: ['GET', 'POST'],
-            path: '/auth/linkedin',
-            config: {
-                auth: 'linkedin',
-                handler: users.loginWithLinkedin
-            }
-        }, {
-            method: ['GET', 'POST'],
-            path: '/auth/twitter',
-            config: {
-                auth: 'twitter',
-                handler: users.loginWithTwitter
-            }
-        }, {
             method: 'POST',
-            path: '/users/register',
+            path: '/register',
             handler: users.register,
             config: {
-                auth: {
-                    strategy: 'token',
-                    mode: 'optional'
-                },
+                auth: false,
                 validate: {
                     payload: {
-                        login_type: Joi.string().valid('facebook', 'google', 'email', 'phone', 'device').required(),
-                        facebook_access_token: Joi.string().when('login_type', {
-                            is: 'facebook',
+                        type: Joi.string().valid('facebook', 'google', 'custom').required(),
+                        access_token: Joi.string().when('type', {
+                            is: ['facebook', 'google'],
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }),
-                        google_access_token: Joi.string().when('login_type', {
-                            is: 'google',
+                        first_name: Joi.string().when('type', {
+                            is: 'custom',
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }),
-                        email: Joi.string().email().when('login_type', {
-                            is: 'email',
+                        last_name: Joi.string().when('type', {
+                            is: 'custom',
+                            then: Joi.required()
+                        }),
+                        email: Joi.string().email().when('type', {
+                            is: 'custom',
+                            then: Joi.required(),
+                            otherwise: Joi.string().valid(Joi.ref('contact.primary').required())
+                        }),
+                        contact: Joi.object({
+                            primary: Joi.string().when('type', {
+                                is: 'custom',
+                                then: Joi.required(),
+                                otherwise: Joi.string().valid(Joi.ref('email').required())
+                            })
+                        }),
+                        password: Joi.string().min(3).max(30).when('type', {
+                            is: 'custom',
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }),
-                        first_name: Joi.string().when('login_type', {
-                            is: ['email', 'phone'],
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
-                        }),
-                        password: Joi.string().min(3).max(30).when('login_type', {
-                            is: ['email', 'phone'],
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
-                        }),
-                        password_confirmation: Joi.string().when('login_type', {
-                            is: ['email', 'phone'],
+                        password_confirmation: Joi.string().when('type', {
+                            is: 'custom',
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }).valid(Joi.ref('password')).options({
@@ -86,59 +62,38 @@
                                 }
                             }
                         }),
-                        deviceId: Joi.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i).when('login_type', {
-                            is: 'device',
-                            then: Joi.required()
-                        }),
-                        phone: Joi.string().when('login_type', {
-                            is: 'phone',
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
+                        username: Joi.string().default(function(context) {
+                            var max = 2999,
+                                min = 1000;
+                            return context.first_name.toLowerCase() + '-' + context.last_name.toLowerCase() + Math.floor(Math.random() * (max - min + 1) + min);
                         })
                     }
-                }
+                },
+                pre: [method: users.socialProfile, assign: 'user']
             }
         },
 
         {
             method: 'POST',
-            path: '/users/login',
+            path: '/login',
             handler: users.login,
             config: {
-                auth: {
-                    strategy: 'token',
-                    mode: 'optional'
-                },
+                auth: false,
                 validate: {
                     payload: {
-                        login_type: Joi.string().valid('facebook', 'google', 'email', 'phone', 'device').required(),
-                        facebook_access_token: Joi.string().when('login_type', {
-                            is: 'facebook',
+                        type: Joi.string().valid('facebook', 'google', 'linkedin', 'twitter', 'custom', 'device').required(),
+                        access_token: Joi.string().when('login_type', {
+                            is: ['facebook', 'google', 'linkedin', 'twitter'],
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }),
-                        google_access_token: Joi.string().when('login_type', {
-                            is: 'google',
+                        username: Joi.string().when('type', {
+                            is: 'custom',
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         }),
-                        email: Joi.string().email().when('login_type', {
-                            is: 'email',
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
-                        }),
-                        password: Joi.string().when('login_type', {
-                            is: ['email', 'phone'],
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
-                        }),
-                        deviceId: Joi.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i).when('login_type', {
-                            is: 'device',
-                            then: Joi.required(),
-                            otherwise: Joi.forbidden()
-                        }),
-                        phone: Joi.string().when('login_type', {
-                            is: 'phone',
+                        password: Joi.string().when('type', {
+                            is: 'custom',
                             then: Joi.required(),
                             otherwise: Joi.forbidden()
                         })
@@ -149,16 +104,11 @@
 
         {
             method: 'GET',
-            path: '/users/logout',
+            path: '/logout',
             handler: users.logout,
             config: {
                 auth: {
                     strategy: 'token'
-                },
-                validate: {
-                    params: {
-
-                    }
                 }
             }
         },
@@ -186,6 +136,10 @@
                 validate: {
                     params: {
                         userId: Joi.alternatives().try(Joi.string().valid('me'), Joi.string().regex(/^[0-9a-fA-F]{24}$/)).required()
+                    },
+                    payload: {
+                        first_name: Joi.string(),
+                        last_name: Joi.string()
                     }
                 }
             }

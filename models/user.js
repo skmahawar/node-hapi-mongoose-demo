@@ -32,18 +32,37 @@
         },
         email: {
             type: String,
-            default: ''
+            index: true
         },
-        phone_number: {
+        email_verified: {
+            type: Boolean,
+            default: false
+        },
+        contact: {
+            primary: {
+                type: String,
+                index: true
+            },
+            secondary: [String]
+        },
+        contact_verified: {
+            type: Boolean,
+            default: false
+        },
+        username: {
+            type: String,
+            required: true,
+            index: true
+        },
+        birthday: {
+            type: Date
+        },
+        gender: {
             type: String
         },
-        /*        username: {
-                    type: String,
-                    default: ''
-                },*/
         provider: {
             type: String,
-            default: ''
+            default: 'custom'
         },
         hashed_password: {
             type: String,
@@ -65,6 +84,9 @@
         created: {
             type: Date,
             default: Date.now
+        },
+        modified: {
+            type: Date
         }
     });
 
@@ -117,10 +139,11 @@
         } else fn(true);
     }, 'Email already exists');
 
-    /*    UserSchema.path('username').validate(function(username) {
-            if (this.skipValidation()) return true;
-            return username.length;
-        }, 'Username cannot be blank');*/
+    UserSchema.path('username').validate(function(username) {
+        if (this.skipValidation()) return true;
+        return username.length;
+    }, 'Username cannot be blank');
+
 
     UserSchema.path('hashed_password').validate(function(hashed_password) {
         if (this.skipValidation()) return true;
@@ -133,6 +156,9 @@
      */
 
     UserSchema.pre('save', function(next) {
+        if (this.created) {
+            this.modified = new Date();
+        }
         if (!this.isNew) return next();
 
         if (!validatePresenceOf(this.password) && !this.skipValidation()) {

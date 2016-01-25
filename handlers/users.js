@@ -7,6 +7,7 @@
     var redis = require("redis");
     var client = redis.createClient();
     var users = require('../services/users');
+    var social = require('../services/social');
     var jsonwebtoken = require("jsonwebtoken");
     var TOKEN_EXPIRATION = 60 * 60;
     var TOKEN_EXPIRATION_SEC = TOKEN_EXPIRATION * 60;
@@ -14,62 +15,19 @@
     var authenticate = require('../config/middlewares/authenticate');
 
     /**
-     * [Login with Facebook description]
+     * [socialProfile description]
      * @param  {[type]} request [description]
      * @param  {[type]} reply   [description]
      * @return {[type]}         [description]
      */
-    exports.loginWithFacebook = function(request, reply) {
-
-        if (!request.auth.isAuthenticated) {
-            return reply('Authentication failed due to: ' + request.auth.error.message);
-        }
-        return reply.redirect('/users/me');
-    };
-
-    /**
-     * [Login with Google description]
-     * @param  {[type]} request [description]
-     * @param  {[type]} reply   [description]
-     * @return {[type]}         [description]
-     */
-    exports.loginWithGoogle = function(request, reply) {
-
-        if (!request.auth.isAuthenticated) {
-            return reply('Authentication failed due to: ' + request.auth.error.message);
-        }
-        return reply.redirect('/users/me');
-    };
-
-
-    /**
-     * [Login with Linkedin description]
-     * @param  {[type]} request [description]
-     * @param  {[type]} reply   [description]
-     * @return {[type]}         [description]
-     */
-    exports.loginWithLinkedin = function(request, reply) {
-
-        if (!request.auth.isAuthenticated) {
-            return reply('Authentication failed due to: ' + request.auth.error.message);
-        }
-        return reply.redirect('/users/me');
-    };
-
-
-    /**
-     * [Login with Twitter description]
-     * @param  {[type]} request [description]
-     * @param  {[type]} reply   [description]
-     * @return {[type]}         [description]
-     */
-    exports.loginWithTwitter = function(request, reply) {
-
-        if (!request.auth.isAuthenticated) {
-            return reply('Authentication failed due to: ' + request.auth.error.message);
-        }
-        return reply.redirect('/users/me');
-    };
+    exports.socialProfile = function(request, reply) {
+        social[request.payload.type](request.payload, function(err, user) {
+            if(err){
+                winston.error(err);
+                return reply(err).takeover();
+            }
+        });
+    }
 
     /**
      * [register description]
