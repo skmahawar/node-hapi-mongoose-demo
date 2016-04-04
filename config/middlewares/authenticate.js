@@ -176,7 +176,6 @@
             }
             return callback(err, true, data);
         });
-    };z
-
+    };
 
 }())

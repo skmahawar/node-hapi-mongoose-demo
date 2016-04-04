@@ -4,11 +4,13 @@
      * Module dependencies
      */
     var request = require('request');
+    var config = require('../config/config');
     var moment = require('moment');
     var Async = require('async');
     var google = require('googleapis');
+    var OAuth2 = google.auth.OAuth2;
     var plus = google.plus('v1');
-    var oauth2Client = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
+    var oauth2Client = new OAuth2(config.google.clientID, config.google.clientSecret, config.google.callbackURL);
     var winston = require('../winston');
     var config = require('../config/config');
 

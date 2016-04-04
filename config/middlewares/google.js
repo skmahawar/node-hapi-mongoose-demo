@@ -3,6 +3,9 @@
     /**
      * Module dependencies
      */
+    
+    var config = require('../config');
+
     module.exports = function(server) {
         server.auth.strategy('google', 'bell', {
             provider: 'google',
@@ -16,8 +19,8 @@
             // Also be sure to pass the location as well. It must be in the list of "AUTHORIZED REDIRECT URIS"
             // You must also enable the Google+ API in your profile.
             // Go to APIs & Auth, then APIs and under Social APIs click Google+ API and enable it.
-            clientId: '',
-            clientSecret: '',
+            clientId: config.google.clientId,
+            clientSecret: config.google.clientSecret,
             location: server.info.uri
         });
     }

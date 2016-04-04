@@ -6,6 +6,12 @@
     var users = require('../handlers/users');
     var Joi = require('joi');
 
+    var generateUsername = function(context) {
+        var max = 2999,
+            min = 1000;
+        return context.first_name.toLowerCase() + '-' + context.last_name.toLowerCase() + Math.floor(Math.random() * (max - min + 1) + min);
+    };
+    generateUsername.description = 'generated username';
     /**
      * User routes
      * @type {Array}
@@ -37,13 +43,13 @@
                         email: Joi.string().email().when('type', {
                             is: 'custom',
                             then: Joi.required(),
-                            otherwise: Joi.string().valid(Joi.ref('contact.primary').required())
+                            otherwise: Joi.string().valid(Joi.ref('contact.primary'))
                         }),
                         contact: Joi.object({
                             primary: Joi.string().when('type', {
                                 is: 'custom',
                                 then: Joi.required(),
-                                otherwise: Joi.string().valid(Joi.ref('email').required())
+                                otherwise: Joi.string().valid(Joi.ref('email'))
                             })
                         }),
                         password: Joi.string().min(3).max(30).when('type', {
@@ -62,14 +68,10 @@
                                 }
                             }
                         }),
-                        username: Joi.string().default(function(context) {
-                            var max = 2999,
-                                min = 1000;
-                            return context.first_name.toLowerCase() + '-' + context.last_name.toLowerCase() + Math.floor(Math.random() * (max - min + 1) + min);
-                        })
+                        username: Joi.string().default(generateUsername)
                     }
                 },
-                pre: [method: users.socialProfile, assign: 'user']
+                pre: [{ method: users.socialProfile, assign: 'user' }]
             }
         },
 

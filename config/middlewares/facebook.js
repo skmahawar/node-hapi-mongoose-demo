@@ -3,6 +3,9 @@
     /**
      * Module dependencies
      */
+    
+    var config = require('../config');
+
     module.exports = function(server) {
         server.auth.strategy('facebook', 'bell', {
             provider: 'facebook',
@@ -13,8 +16,8 @@
             // Once you create your app, fill out Settings and set the App Domains
             // Under Settings >> Advanced, set the Valid OAuth redirect URIs to include http://<yourdomain.com>/bell/door
             // and enable Client OAuth Login
-            clientId: '',
-            clientSecret: '',
+            clientId: config.facebook.clientId,
+            clientSecret: config.facebook.clientSecret,
             location: server.info.uri
         });
     }
